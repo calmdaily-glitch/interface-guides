@@ -86,7 +86,6 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 사번 관련 파라미터(`emp_cd`, `sa_emp_cd`, `re_emp_cd`, `se_emp_cd`) 및  
 인증용 파라미터(`encryptkey`)를 **AES 방식으로 암호화하여 전달**한다.
 
-본 암호화 방식은 **특정 개발 언어에 종속되지 않는다.**
 ---
 
 ### 4.2 암호화 적용 대상 파라미터
@@ -107,11 +106,8 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 - **Key Length:** 128bit  
 - **Mode:** ECB  
 - **Padding:** PKCS5Padding  
-- **Encoding:** Hex  
-- **언어 종속성:** 없음  
 
-> Java 기준 참고 구현은 `CryptoAESUtil.java` 로 제공되며,  
-> 타 언어(C#, Python, Node.js 등)에서도 동일한 규칙을 적용하여 구현할 수 있다.
+> Java 기준 참고 구현은 `CryptoAESUtil.java` 로 제공됨.
 
 ---
 
