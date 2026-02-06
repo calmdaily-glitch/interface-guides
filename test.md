@@ -11,7 +11,8 @@
 - **Method:** GET  
 - **Encoding:** UTF-8  
 - **Response Format:** JSON  
-- **암호화:** AES 기반 커스텀 암호화 (별첨: `CryptoAESUtil.java` 사용)
+- **암호화:** AES 기반 커스텀 암호화  
+- **언어 종속성:** 없음 (Java 기준 참고 구현 제공)
 
 ---
 
@@ -22,15 +23,15 @@
 ```
 http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
   ?key=absent_sync_
-  &emp_cd={사번코드 또는 암호화된 사번코드}
-  &sa_emp_cd={대리결재자사번}
-  &re_emp_cd={대리접수자사번}
-  &se_emp_cd={대리발송처리자사번}
+  &emp_cd={AES 암호화된 사번코드}
+  &sa_emp_cd={AES 암호화된 대리결재자 사번}
+  &re_emp_cd={AES 암호화된 대리접수자 사번}
+  &se_emp_cd={AES 암호화된 대리발송처리자 사번}
   &not_sanc_cd={부재사유코드}
   &f={IN|DEL}
   &st_dt={부재시작일(YYYYMMDDHHMI)}
   &ed_dt={부재종료일(YYYYMMDDHHMI)}
-  &encryptkey={암호화된 키}
+  &encryptkey={AES 암호화된 키}
 ```
 ---
 
@@ -39,15 +40,18 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 | 파라미터명 | 설명 | 비고 |
 |------------|-------|------|
 | key | 헤더값, 고정값 `absent_sync_abs` | 필수 |
-| emp_cd | 사원코드 또는 AES 암호화된 사원코드 | 암호화 사용 시 `encryptkey` 필수 |
+| emp_cd | **AES 암호화된 사원 사번** | 필수 |
+| sa_emp_cd | **AES 암호화된 대리결재자 사번** | 선택 |
+| re_emp_cd | **AES 암호화된 대리접수자 사번** | 선택 |
+| se_emp_cd | **AES 암호화된 대리발송처리자 사번** | 선택 |
 | st_dt | 부재 시작일 (YYYYMMDDHHMI) | 필수 |
 | ed_dt | 부재 종료일 (YYYYMMDDHHMI) | 필수 |
-| sa_emp_cd | 대리결재자 사번 | 선택 |
-| re_emp_cd | 대리접수자 사번 | 선택 |
-| se_emp_cd | 대리발송처리자 사번 | 선택 |
 | not_sanc_cd | 부재사유 코드 | 코드표 참조 |
 | f | IN=등록, DEL=삭제 | 필수 |
-| encryptkey | AES로 암호화된 키 값 | 암호화 사용 시 필수 |
+| encryptkey | **AES로 암호화된 키 값** | 필수 |
+
+> ※ `emp_cd`, `sa_emp_cd`, `re_emp_cd`, `se_emp_cd` 는  
+> 동일한 암호화 규칙(AES)을 적용하여 암호화된 값으로 전달해야 한다.
 
 ---
 
@@ -78,25 +82,51 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 ## 4. 암호화 처리 규칙 (AES)
 
 ### 4.1 암호화 개요
-부재연동 시 개인정보 보호를 위해 사원번호(`emp_cd`)를 AES 방식으로 암호화하여 전달할 수 있다.
+본 인터페이스에서는 개인정보 보호를 위해  
+사번 관련 파라미터(`emp_cd`, `sa_emp_cd`, `re_emp_cd`, `se_emp_cd`) 및  
+인증용 파라미터(`encryptkey`)를 **AES 방식으로 암호화하여 전달**한다.
 
-암호화는 **두 단계**로 이루어진다.
+본 암호화 방식은 **특정 개발 언어에 종속되지 않는다.**
+---
 
-#### (1) encryptkey 생성
-- 원본키: 임의값 또는 현재 timestamp  
-- 인증코드(`AUTH_CODE`) 기반 AES 암호화  
-- 결과값을 `encryptkey` 파라미터로 전달
+### 4.2 암호화 적용 대상 파라미터
 
-#### (2) emp_cd 암호화
-- 복호화키: 위에서 사용한 **원본키**  
-- 사번(`emp_cd`)을 암호화하여 전달
+| 파라미터명 | 암호화 여부 |
+|------------|-------------|
+| emp_cd | AES 암호화 |
+| sa_emp_cd | AES 암호화 |
+| re_emp_cd | AES 암호화 |
+| se_emp_cd | AES 암호화 |
+| encryptkey | AES 암호화 |
 
 ---
 
-### 4.2 CryptoAESUtil.java
-- AES 기반 암·복호화 유틸리티  
-- `commons-codec-1.10.jar` 사용  
-- **해당 소스코드는 첨부파일로 제공됨**
+### 4.3 암호화 규칙 요약
+
+- **Algorithm:** AES  
+- **Key Length:** 128bit  
+- **Mode:** ECB  
+- **Padding:** PKCS5Padding  
+- **Encoding:** Hex  
+- **언어 종속성:** 없음  
+
+> Java 기준 참고 구현은 `CryptoAESUtil.java` 로 제공되며,  
+> 타 언어(C#, Python, Node.js 등)에서도 동일한 규칙을 적용하여 구현할 수 있다.
+
+---
+
+### 4.4 암호화 처리 절차
+
+#### (1) encryptkey 생성
+- 원본키: 임의값 또는 현재 timestamp  
+- 인증코드(`AUTH_CODE`)를 사용하여 AES 암호화  
+- 결과값을 `encryptkey` 파라미터로 전달
+
+#### (2) 사번 파라미터 암호화
+- 복호화 키: 위 (1) 단계에서 사용한 **원본키**  
+- 대상: `emp_cd`, `sa_emp_cd`, `re_emp_cd`, `se_emp_cd`  
+- AES 암호화 후 요청 파라미터로 전달
+
 ---
 
 ## 5. 응답(Response)
@@ -104,13 +134,11 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 ### 5.1 JSON 구조
 
 성공:
-
 ```json
 {"result": "Success"}
 ```
 
 실패:
-
 ```json
 {"result": "오류메세지내용"}
 ```
@@ -134,40 +162,6 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 
 ---
 
-## 6. 암호화 적용 예시
-
-### 6.1 암호화 Key 생성 예시
-
-```java
-String key = String.valueOf(System.currentTimeMillis());
-String encryptKey = CryptoAESUtil.encryptAES(key, CryptoAESUtil.AUTH_CODE);
-```
-
-### 6.2 사번 암호화 예시
-
-```java
-String empCode = "test001";
-String encryptEmpCd = CryptoAESUtil.encryptAES(empCode, key);
-```
-
----
-
-## 7. 예시 요청 URL
-
-```
-http://GW_IP:GW_PORT/ATWork/at_abs/abs_sync.jsp
-?key=absent_sync_
-&emp_cd=8fa31fbec9d2a91ab3...
-&encryptkey=a93bc19d0ef3a8e1f3d...
-&sa_emp_cd=000123
-&not_sanc_cd=04
-&f=IN
-&st_dt=202602050900
-&ed_dt=202602051800
-```
-
----
-
-## 8. 첨부 파일 목록
+## 6. 첨부 파일 목록
 - `CryptoAESUtil.java` (AES 암·복호화 유틸리티 클래스)  
 - `commons-codec-1.10.jar` (암호화 라이브러리)
