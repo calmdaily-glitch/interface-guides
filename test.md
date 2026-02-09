@@ -4,17 +4,13 @@
 본 문서는 외부 시스템에서 그룹웨어 전자결재 시스템으로 **부재 정보(등록/삭제)** 를 연계하기 위한 규격을 정의한다.  
 연계 요청 파라미터, 응답 규격, 부재사유 코드, 암호화 처리 방식(AES 기반)을 포함한다.
 
-<div style="page-break-after: always;"></div>
-
 ## 2. 연계 방식 개요
 - **Protocol:** HTTP GET  
 - **Method:** GET  
 - **Encoding:** UTF-8  
 - **Response Format:** JSON  
-- **암호화:** AES 기반 커스텀 암호화  
+- **암호화:** AES 기반 암호화  
 - **언어 종속성:** 없음 (Java 기준 참고 구현 제공)
-
-<div style="page-break-after: always;"></div>
 
 ## 3. 요청(Request)
 
@@ -34,12 +30,11 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
   &encryptkey={AES 암호화된 키}
 ```
 <div style="page-break-after: always;"></div>
-
 ### 3.2 요청 파라미터 정의
 
 | 파라미터명 | 설명 | 비고 |
 |------------|-------|------|
-| key | 헤더값, 고정값 `absent_sync_abs` | 필수 |
+| key | 헤더값, 고정값 `absent_sync_aks` | 필수 |
 | emp_cd | **AES 암호화된 사원 사번** | 필수 |
 | sa_emp_cd | **AES 암호화된 대리결재자 사번** | 선택 |
 | re_emp_cd | **AES 암호화된 대리접수자 사번** | 선택 |
@@ -52,8 +47,6 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 
 > ※ `emp_cd`, `sa_emp_cd`, `re_emp_cd`, `se_emp_cd` 는  
 > 동일한 암호화 규칙(AES)을 적용하여 암호화된 값으로 전달해야 한다.
-
-<div style="page-break-after: always;"></div>
 
 ### 3.3 부재사유 코드표
 
@@ -97,7 +90,6 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 | se_emp_cd | AES 암호화 |
 | encryptkey | AES 암호화 |
 
-<div style="page-break-after: always;"></div>
 
 ### 4.3 암호화 규칙 요약
 
@@ -107,8 +99,6 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 - **Padding:** PKCS5Padding  
 
 > Java 기준 참고 구현은 `CryptoAESUtil.java` 로 제공됨.
-
-<div style="page-break-after: always;"></div>
 
 ### 4.4 암호화 처리 절차
 
@@ -122,7 +112,6 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 - 대상: `emp_cd`, `sa_emp_cd`, `re_emp_cd`, `se_emp_cd`  
 - AES 암호화 후 요청 파라미터로 전달
 
-<div style="page-break-after: always;"></div>
 
 ## 5. 응답(Response)
 
@@ -133,14 +122,10 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 {"result": "Success"}
 ```
 
-<div style="page-break-after: always;"></div>
-
 실패:
 ```json
 {"result": "오류메세지내용"}
 ```
-
-<div style="page-break-after: always;"></div>
 
 ### 5.2 오류 메시지 목록
 
@@ -156,8 +141,6 @@ http://{GW_IP}:{GW_PORT}/ATWork/at_abs/abs_sync.jsp
 - 부재설정 사용자는 결재대리자로 설정할 수 없습니다.  
 - 부재설정 사용자는 대리접수담당자로 설정할 수 없습니다.  
 - 부재설정 사용자는 대리발송담당자로 설정할 수 없습니다.  
-
-<div style="page-break-after: always;"></div>
 
 ## 6. 첨부 파일 목록
 - `CryptoAESUtil.java` (AES 암·복호화 유틸리티 클래스)  
